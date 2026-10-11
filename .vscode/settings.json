@@ -1,0 +1,7 @@
+{
+    "artisan.docker.enabled": true,
+    "artisan.docker.command": "docker compose -f docker/compose.yaml exec app",
+    "artisan.location": ["src/artisan"],
+    "typescript.tsdk": "src/node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true
+}

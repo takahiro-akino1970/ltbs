@@ -1,0 +1,68 @@
+@use "bootstrap/scss/bootstrap" with (
+    $font-family-sans-serif: (Arial, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif),
+    $color-mode-type: media-query
+);
+
+:root {
+    color-scheme: light dark;
+    --background: #ffffff;
+    --foreground: #171717;
+}
+
+body {
+    color: var(--foreground);
+    background: var(--background);
+    font-family: Arial, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+.main {
+    width: min(100%, 880px);
+    margin: auto;
+    padding: 80px 24px;
+}
+
+.label {
+    margin-bottom: 16px;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+}
+
+.main h1 {
+    font-size: clamp(28px, 5vw, 44px);
+    line-height: 1.4;
+}
+
+.description {
+    margin-top: 24px;
+    line-height: 1.9;
+}
+
+.features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
+    padding: 0;
+    list-style: none;
+
+    li {
+        padding: 10px 16px;
+        border: 1px solid color-mix(in srgb, var(--foreground) 25%, transparent);
+        border-radius: 8px;
+    }
+}
+
+.note {
+    margin-top: 32px;
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #0a0a0a;
+        --foreground: #ededed;
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Validate Laravel and Vue scaffold",
+            "type": "shell",
+            "command": "docker compose -f docker/compose.yaml exec -T vite sh -c 'npm run lint && npm run typecheck && npm run build' && docker compose -f docker/compose.yaml exec -T app sh -c 'vendor/bin/pint --test && php artisan test'",
+            "problemMatcher": [],
+            "group": "build"
+        }
+    ]
+}
