@@ -127,14 +127,14 @@ Laravel の `APP_URL`、Vite の CORS、HMR ポートも Compose から連動し
 
 MySQL 8.4 LTS を使用します。Docker 内の Laravel は以下の接続設定を使用します。
 
-| 設定 | 値 |
-| --- | --- |
-| ホスト | `mysql` |
-| ポート | `3306`（Docker 内部のみ） |
-| データベース | `MYSQL_DATABASE`（既定 `ltbs`） |
-| ユーザー | `MYSQL_USER`（既定 `ltbs`、root は使用しません） |
-| パスワード | `docker/.env` の `MYSQL_PASSWORD` |
-| 文字コード / 照合順序 | `utf8mb4` / `utf8mb4_unicode_ci` |
+| 設定                  | 値                                               |
+| --------------------- | ------------------------------------------------ |
+| ホスト                | `mysql`                                          |
+| ポート                | `3306`（Docker 内部のみ）                        |
+| データベース          | `MYSQL_DATABASE`（既定 `ltbs`）                  |
+| ユーザー              | `MYSQL_USER`（既定 `ltbs`、root は使用しません） |
+| パスワード            | `docker/.env` の `MYSQL_PASSWORD`                |
+| 文字コード / 照合順序 | `utf8mb4` / `utf8mb4_unicode_ci`                 |
 
 Compose が Laravel に環境変数を渡すため、Docker では `src/.env` の
 SQLite 設定より MySQL 設定が優先されます。ローカル開発と PHPUnit のテストは
@@ -205,3 +205,7 @@ http://localhost:8000 を再読み込みすると、ビルド済みアセット�
 Nginx・MySQL のイメージも含め、すべてのベースイメージを監査対象としてください。
 パッケージ監査とは別の警告であり、この構成は本番用の安全性検証済みではありません。
 本番環境を構築する際はベースイメージの更新と再スキャンを行ってください。
+
+# ltbs
+
+Land Transport Booking System
