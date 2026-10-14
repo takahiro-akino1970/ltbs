@@ -18,7 +18,7 @@
 | UI JavaScript | Bootstrap、Popper.js |
 | ビルド・開発サーバー | Vite 8、Node.js 22.12以上、npm |
 | Webサーバー | Nginx（非 root イメージ） |
-| データベース | MySQL 8.4 LTS、utf8mb4 / utf8mb4_unicode_ci |
+| データベース | MariaDB 11.4 LTS、utf8mb4 / utf8mb4_unicode_ci |
 | 開発環境 | Docker Compose v2 |
 | フロントエンド検証 | ESLint、vue-tsc |
 | PHP検証 | Laravel Pint、PHPUnit 12 |
@@ -48,11 +48,11 @@
 - `app`：Laravel / PHP-FPM。内部ポート9000。ホストには公開しない。
 - `nginx`：`src/public/` のみを読み取り専用でマウントし、PHP リクエストを `app:9000` に渡す。
 - `vite`：フロントエンドの配信・ホットリロード。
-- `mysql`：Laravel の接続先。内部ポート3306。ホストには公開しない。
+- `mariadb`：Laravel の接続先。内部ポート3306。ホストには公開しない。
 - アプリの既定URLは `http://localhost:8000`。Vite の既定ポートは5173。
 - ポートは `docker/.env` の `APP_PORT` / `VITE_PORT` で変更できる。固定値を決めつけない。
 - `src/node_modules` はホストとコンテナで共有する。npm 操作はコンテナ側に統一し、同時実行しない。
-- Composer の `vendor` と MySQL の `mysql_data` は名前付きボリュームで保存する。
+- Composer の `vendor` と MariaDB の `mariadb_data` は名前付きボリュームで保存する。
 - ホストの UID/GID に合わせて `LOCAL_UID` / `LOCAL_GID` を設定する。
 - この Compose は開発専用。起動時に依存関係のインストールとマイグレーションを行う。
 
@@ -82,7 +82,7 @@ docker compose -f docker/compose.yaml exec nginx nginx -t
 
 - PHP / Vue の挙動変更には関連テストを追加・更新する。
 - UI変更は必要に応じてブラウザーでも確認する。
-- PHPUnit は SQLite のメモリDBを使用し、開発用MySQLには接続しない。
+- PHPUnit は SQLite のメモリDBを使用し、開発用MariaDBには接続しない。
 - `src/phpunit.xml` のDB分離設定と `DatabaseConnectionTest` の検証を維持する。
 - 依存関係の変更時はマニフェストとロックファイルをセットで更新する。
 
@@ -90,11 +90,11 @@ docker compose -f docker/compose.yaml exec nginx nginx -t
 
 - `.env`、認証情報、秘密鍵をコミットしない。設定例は `.env.example` に記載する。
 - Docker のDB設定は Compose から渡され、`src/.env` の SQLite 設定より優先される。
-- 旧SQLiteファイルは保持している。MySQLへの自動データ移行は行わない。
-- `docker compose down --volumes` は MySQL の全データを削除するため、明示的な許可なく実行しない。
+- 旧SQLiteファイルは保持している。MariaDBへの自動データ移行は行わない。
+- `docker compose down --volumes` は MariaDB と移行前MySQLの全データを削除するため、明示的な許可なく実行しない。
 - `migrate:fresh`、SQLite削除、既存データの破棄も明示的な許可なく行わない。
-- MySQL 初期化用環境変数は空のボリュームの初期化時のみ反映される。
-- 既存MySQLの認証情報変更のために、データボリュームを削除しない。
+- MariaDB 初期化用環境変数は空のボリュームの初期化時のみ反映される。
+- 既存MariaDBの認証情報変更のために、データボリュームを削除しない。
 
 ## 関連資料
 

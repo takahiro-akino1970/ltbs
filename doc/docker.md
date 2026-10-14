@@ -19,7 +19,7 @@ cp .env.example .env
 ```
 
 初回セットアップ時のみコピーしてください。既存の `.env` は上書きしないでください。
-`docker/.env` の `MYSQL_PASSWORD` / `MYSQL_ROOT_PASSWORD` に、それぞれ異なる
+`docker/.env` の `MARIADB_PASSWORD` / `MARIADB_ROOT_PASSWORD` に、それぞれ異なる
 十分に長いランダムなパスワードを設定してください（`openssl rand -hex 24` などで生成）。
 未設定では Compose が明示的にエラーになります。パスワードを Git にコミットしないでください。
 この作業環境では、Git 管理対象外の `docker/.env` に生成済みです。
@@ -37,8 +37,8 @@ docker compose up --build
 - `composer install` / `npm ci` でロックファイルの依存関係をインストール
 - `src/.env` が存在しなければ `src/.env.example` から作成
 - `APP_KEY` が未設定なら生成
-- MySQL のデータベース・アプリ用ユーザーを初回作成
-- MySQL の接続準備完了後に Laravel のマイグレーションを実行
+- MariaDB のデータベース・アプリ用ユーザーを初回作成
+- MariaDB の接続準備完了後に Laravel のマイグレーションを実行
 
 4サービスの準備完了後、**http://localhost:8000** を開いてください。
 Vite は http://localhost:5173 で動作します（アプリの閲覧先ではありません）。
@@ -56,12 +56,13 @@ Vite は http://localhost:5173 で動作します（アプリの閲覧先では�
 - npm の `node_modules` は `src/node_modules` をホストとコンテナで共有します。
   Vite 起動時の `npm ci` でインストールされ、ホスト側の VS Code も型定義を参照できます。
   npm のインストール操作はコンテナ側に統一し、ホストとの同時実行を避けてください。
-- MySQL のデータは `mysql_data` の名前付きボリュームに保存します。
+- MariaDB のデータは `mariadb_data` の名前付きボリュームに保存します。
+- 移行前のMySQLデータ用 `mysql_data` ボリュームはロールバック用に保持します。
 - `.env`、旧SQLite（`src/database/database.sqlite`）、`storage/` はホストに保存します。
-- SQLite ファイルは保持しますが、データを MySQL に自動移行しません。
+- SQLite ファイルは保持しますが、データを MariaDB に自動移行しません。
 - SQLite と秘密情報を含む `.env` は Git 管理対象外です。
 - Nginx・PHP-FPM・Vite は非 root ユーザーで動作します。
-  MySQL は公式イメージの初期化後、mysqld を mysql ユーザーで実行します。
+  MariaDB は公式イメージの初期化後、サーバープロセスを mysql ユーザーで実行します。
 
 ## 起動・停止・ログ
 
@@ -69,12 +70,12 @@ Vite は http://localhost:5173 で動作します（アプリの閲覧先では�
 
 ```bash
 docker compose up --build -d
-docker compose logs -f nginx app vite mysql
+docker compose logs -f nginx app vite mariadb
 docker compose down
 ```
 
-`docker compose down` は MySQL、SQLite、依存パッケージのデータを削除しません。
-**`docker compose down --volumes` は MySQL の全データと `vendor` を削除します。**
+`docker compose down` は MariaDB、SQLite、依存パッケージのデータを削除しません。
+**`docker compose down --volumes` は MariaDB・移行前MySQLの全DBデータと `vendor` を削除します。**
 共有する `src/node_modules` はこのコマンドでは削除されません。
 SQLite の削除や `migrate:fresh` は既存データを失うため、必要な場合だけ実行してください。
 
@@ -87,7 +88,8 @@ Laravel の `APP_URL`、Vite の CORS、HMR ポートも Compose から連動し
 
 ## 関連資料
 
+- [本番サーバーへの配置](production.md)
 - [構成概要](architecture.md)
-- [MySQLへの接続](database.md)
+- [MariaDBへの接続](database.md)
 - [開発・検証手順](development.md)
 - [資料一覧](../README.md)

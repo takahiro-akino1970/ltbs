@@ -31,7 +31,7 @@ docker compose exec nginx nginx -t
 
 VS Code の「Validate Laravel and Vue scaffold」タスクでもまとめて実行できます。
 Inertia の HTML 応答・JSON 応答を検証する Feature テストを用意しています。
-PHPUnit は Docker の MySQL 環境変数を上書きして SQLite のメモリDBを使用します。
+PHPUnit は Docker の DB 環境変数を上書きして SQLite のメモリDBを使用します。
 テスト用接続が分離されていることも Feature テストで検証します。
 
 ### Viteを使わずビルド済みアセットで確認する
@@ -76,7 +76,7 @@ npm run dev
 http://localhost:8000 を開いてください。
 Docker と同時に同じソースディレクトリでサーバーを起動しないでください。
 `public/hot` や SQLite ファイルが共有されるためです。
-Docker では Compose の環境変数により MySQL を使用します。
+Docker では Compose の環境変数により MariaDB を使用します。
 このローカル開発手順と PHPUnit は SQLite を使用します。
 
 ローカルでの検証は `src/` で実行します。
@@ -111,7 +111,7 @@ Bootstrap 5 内部には旧 Sass 記法が残っているため、Vite の `quie
 作成時の `npm audit` / `composer audit` は警告 0 件です。
 一方、VS Code の Dockerfile 診断では、公式 Node.js / PHP の
 ベースイメージに critical / high の脆弱性警告が報告されています。
-Nginx・MySQL のイメージも含め、すべてのベースイメージを監査対象としてください。
+Nginx・MariaDB のイメージも含め、すべてのベースイメージを監査対象としてください。
 パッケージ監査とは別の警告であり、この構成は本番用の安全性検証済みではありません。
 本番環境を構築する際はベースイメージの更新と再スキャンを行ってください。
 
