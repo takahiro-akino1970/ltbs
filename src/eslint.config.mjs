@@ -16,6 +16,8 @@ export default defineConfig(
             },
         },
         rules: {
+            // 未定義参照は vue-tsc が検出するため、DOM 型を誤検出する no-undef は無効化する。
+            'no-undef': 'off',
             'vue/multi-word-component-names': 'off',
             'vue/html-indent': ['error', 4],
         },

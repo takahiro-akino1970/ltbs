@@ -7,18 +7,26 @@
 ├── docker/
 │   ├── Dockerfile         # 開発・本番用のコンテナイメージ
 │   ├── compose.yaml       # 開発用: Nginx・PHP-FPM・Vite・MariaDB
-│   ├── compose.production.yaml # 本番用: Web Nginx・PHP-FPM
-│   ├── nginx/default.conf # 公開ディレクトリと FastCGI の設定
+│   ├── compose.production.yaml # 本番用: Web Nginx・発注/管理の PHP-FPM
+│   ├── nginx/             # Host 名による振り分けと FastCGI の設定
+│   ├── local/             # 開発用の発注/管理別アプリ設定例
+│   ├── production/        # 本番用の発注/管理/Web別設定例
 │   ├── php-fpm.conf       # PHP-FPM の設定
 │   ├── entrypoint.sh      # Laravel の初期化と PHP-FPM の起動
 │   └── .env.example       # ポート・ユーザーID・DB設定例
 ├── src/
 │   ├── app/               # Laravel のアプリケーション
-│   ├── routes/web.php     # Inertia ページのルーティング
+│   ├── routes/web.php     # APP_PORTAL に応じてポータル別ルートを読み込む
+│   ├── routes/order.php   # 発注側のルーティング
+│   ├── routes/admin.php   # 管理側のルーティング
 │   ├── resources/
-│   │   ├── js/app.ts      # Vue / Inertia のエントリーポイント
-│   │   ├── js/pages/      # Vue SFC（TypeScript）
-│   │   ├── scss/app.scss  # Bootstrap とアプリ独自のスタイル
+│   │   ├── js/order.ts    # 発注側 Vue / Inertia エントリーポイント
+│   │   ├── js/admin.ts    # 管理側 Vue / Inertia エントリーポイント
+│   │   ├── js/pages/      # 発注側・管理側の Vue SFC（TypeScript）
+│   │   ├── js/layouts/    # ポータル別の共通レイアウト
+│   │   ├── js/components/ # ポータル別の再利用UI部品
+│   │   ├── js/types/      # 共有する型定義・Inertia の型拡張
+│   │   ├── scss/          # ポータル別エントリー、Bootstrap 設定、共通スタイル
 │   │   └── views/app.blade.php
 │   ├── database/          # マイグレーション・旧SQLiteファイル
 │   └── tests/
@@ -33,16 +41,61 @@ Laravel 13 + Inertia.js 3 + Vue 3 + TypeScript を使用します。
 Laravel のルートから `Inertia::render()` で Vue ページを返す構成です。
 独立した SPA 用 API サーバーや Vue Router は使用していません。
 
+## 一覧テーブルと無限スクロール
+
+発注側・管理側の一覧テーブルは、ページ番号によるページネーションではなく
+無限スクロールを使用します。独自の `IntersectionObserver` 実装や追加の
+無限スクロールライブラリは導入せず、現在採用している Inertia.js 3 の
+[`Inertia::scroll()`](https://inertiajs.com/docs/v3/data-props/infinite-scroll) と
+Vue用 `<InfiniteScroll>` コンポーネントを使用します。
+
+### サーバー側
+
+- 一覧データは `Inertia::scroll()` で返し、Eloquent の `cursorPaginate()` を基本とします。
+- 1回の取得件数は50件を初期値とし、実データ量と応答時間を計測して調整します。
+- カーソルの前後で順序が不定にならないよう、業務上の並び順に加えて主キーを
+  最後の並び順へ必ず含めます。
+- 一覧に必要な列だけを取得し、関連データはN+1クエリーが発生しないよう事前ロードします。
+- 検索・絞り込み・並び順はサーバー側で適用し、クエリーパラメーターとしてURLへ保持します。
+
+### Vue側
+
+- `<InfiniteScroll data="...">` へ `Inertia::scroll()` で返したprop名を指定します。
+- 検索条件または並び順の変更時は、Inertia visitの `only` と `reset` に対象propを指定し、
+  既に読み込んだ別条件の行が新しい結果へ混在しないようにします。
+- 行の `key` には配列添字ではなく、発注IDなどの不変かつ一意な値を使用します。
+- 既定のURL同期を使用し、表示位置に対応するページまたはカーソルを履歴へ保持します。
+  画面内の副次的な一覧など、スクロール位置をURLへ反映すべきでない場合だけ
+  `preserve-url` を使用します。
+- 読み込み中、終端、0件、通信失敗をそれぞれ区別して表示します。通信失敗を
+  0件または読込完了として扱わず、再試行操作を表示します。
+- 読み込み状態は `aria-live` で通知し、行追加時にフォーカスを移動しません。
+  キーボード操作向けに「さらに読み込む」操作も提供できる構成にします。
+
+HTMLのtable構造を壊さないよう、`<InfiniteScroll>` を単純にtableの内外へ
+`div` として挿入しません。テーブルで使用する場合は `as="tbody"` とし、
+開始・終了の監視要素をtable外の要素として `start-element` / `end-element` に渡します。
+複数画面で実装する段階で、この構造とローディング表示を共通Vueコンポーネントへまとめます。
+
+無限スクロールは通信回数を分割しますが、読み込み済み行を自動的に仮想化する機能ではありません。
+まずはInertia標準機能で実装し、長時間操作時のDOM要素数とメモリー使用量を計測します。
+実測上の問題が確認された場合に限り、手動読込へ切り替える `manual-after` または
+テーブル向け仮想スクロールの導入を別途検討します。
+
 ## 開発環境
 
 Web サーバーは Nginx です。PHP 内蔵の開発用 Web サーバーは使用しません。
-Nginx が静的ファイルを配信し、Laravel へのリクエストを
-`app:9000` の PHP-FPM に FastCGI で渡します。
-PHP-FPM のポートはホストに公開せず、Nginx のみを `APP_PORT` で公開します。
+発注側・管理側の両方をローカルで確認する場合は、アプリケーションコードを共有する
+PHP-FPM コンテナを2つ起動し、1つの Nginx がリクエストの Host 名に応じて
+`app-order:9000` または `app-admin:9000` へ FastCGI で振り分けます。
+PHP-FPM のポートはホストに公開せず、Nginx のみを公開します。
 Nginx には `src/public/` だけを読み取り専用でマウントしています。
 
-Vite はフロントエンドの開発用配信とホットリロードを担当します。
-MariaDB は Docker 内部で Laravel から接続します。
+発注側・管理側の動作モードとURL等の設定は、ホスト側で管理する環境別設定ファイルから
+各 PHP-FPM コンテナへ個別に渡します。Docker Compose の `env_file` を使用し、
+環境別 `.env` をコンテナ内へボリュームマウントしません。設定ファイルはGitに含めません。
+Vite はフロントエンドの開発用配信とホットリロードを担当します。MariaDB は1つを共有し、
+Docker 内部から両方の Laravel 環境が接続します。
 
 ## 本番環境
 
@@ -50,6 +103,27 @@ MariaDB は Docker 内部で Laravel から接続します。
 転送先の `127.0.0.1:8080` は Docker 内の Web Nginx で、PHP リクエストを
 Docker 内の Laravel/PHP-FPM に FastCGI で渡します。
 PHP-FPM はホストにポート公開しません。MariaDB は Compose の外にある既存 DB を使います。
+
+### 発注側・受注管理側の配置
+
+発注側と受注・システム管理側は、同じリポジトリからビルドしたアプリケーションを
+別々の環境として起動します。たとえば `order.example.jp` と `admin.example.jp` の
+別ドメインを割り当て、1つのアプリ配信用 Nginx が Host 名に応じて各アプリ環境へ
+転送します。TLS 終端を担うホスト側 Nginx は、両ドメインを共通のアプリ配信用 Nginx
+へリバースプロキシします。
+アプリ環境ごとにログイン入口、セッション、キャッシュ、ログ、ファイル保存領域を分離し、
+一方の環境で他方の機能を提供しないようルートと認証ミドルウェアを設定します。
+動作モードは環境別の設定ファイルから各アプリへ渡し、ホスト側に設定ファイルを配置します。
+Compose の `env_file` でコンテナへ環境変数として渡し、設定ファイル自体はコンテナへ
+ボリュームマウントしません。設定ファイルには秘密情報が含まれるため、Git管理対象外とし、
+サーバー上の読み取り権限を制限します。
+
+両環境は同じ MariaDB の発注・受注データを参照します。アプリ環境の分離は
+データベースの分離ではなく、障害・侵害の影響を完全に隔離するものではありません。
+DBスキーマのマイグレーションは共通DBに対して一度だけ実行し、更新時は両環境の
+アプリケーションバージョンが一時的に異なっても動作する順序で適用します。
+`APP_KEY`を環境ごとに分ける場合、Laravelで暗号化した共通DB内の値を相互に
+復号できないため、暗号化データの取り扱いと鍵の所有環境を先に決めます。
 
 詳細な設定と配置手順は [本番配置](production.md) を参照してください。
 

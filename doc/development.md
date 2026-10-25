@@ -47,7 +47,7 @@ http://localhost:8000 を再読み込みすると、ビルド済みアセット�
 
 ## Dockerを使わずに開発する
 
-PHP 8.4 以上、Composer 2、Node.js 22.12 以上、npm が必要です。
+PHP 8.3 以上、Composer 2、Node.js 22.12 以上、npm が必要です。
 PHP は Laravel / PHPUnit の必須拡張に加え、`pdo_sqlite` を有効にしてください。
 
 プロジェクトの `src/` で実行します。
@@ -91,12 +91,21 @@ php artisan test
 
 ## Sass / Bootstrap 5
 
-`src/resources/js/app.ts` から `src/resources/scss/app.scss` と Bootstrap の JavaScript を
-読み込みます。Sass は Vite がコンパイルするため、追加の Sass 起動コマンドは不要です。
+JavaScript は発注側の `src/resources/js/order.ts` と管理側の
+`src/resources/js/admin.ts`、CSS は発注側の `src/resources/scss/order.scss` と
+管理側の `src/resources/scss/admin.scss` をそれぞれ独立した Vite エントリーとして
+コンパイルし、`APP_PORTAL` に応じて対応するエントリーの組み合わせだけを読み込みます。
+Vue ページは `src/resources/js/pages/order/` と `src/resources/js/pages/admin/` に
+分け、共通の Inertia / Vue 起動処理は `src/resources/js/createPortalApp.ts` に配置します。
+Bootstrap の共通設定は `src/resources/scss/_bootstrap.scss`、アプリ共通スタイルは
+`src/resources/scss/app.scss` に配置し、両エントリーから読み込みます。
+Sass は Vite がコンパイルするため、追加の Sass 起動コマンドは不要です。
 Vue SFC の `<style lang="scss" scoped>` も使用できます。
 
-Bootstrap の Sass は `app.scss` の `@use` で読み込みます。
-Bootstrap 変数は `with (...)` で上書きし、独自スタイルはその後に記述してください。
+各ポータルの SCSS は `_bootstrap.scss` を `@use "bootstrap" as bootstrap` で読み込みます。
+Bootstrap の変数・Mixin・関数は `bootstrap.$primary` や
+`@include bootstrap.media-breakpoint-up(md) { ... }` のように参照できます。
+共通の Bootstrap 変数は `_bootstrap.scss` の `with (...)` で上書きしてください。
 ダークモードは OS の設定（`prefers-color-scheme`）に連動します。
 Popper も導入しているため、Dropdown などの位置調整が必要なコンポーネントも利用できます。
 Tooltip / Popover は自動初期化されないため、Vue のマウント時に初期化し、

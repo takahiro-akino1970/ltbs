@@ -1,0 +1,4 @@
+@forward "bootstrap/scss/bootstrap" with (
+    $font-family-sans-serif: (Arial, "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif),
+    $color-mode-type: media-query
+);

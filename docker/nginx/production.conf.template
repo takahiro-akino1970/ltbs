@@ -1,0 +1,49 @@
+upstream app_order {
+    server app-order:9000;
+}
+
+upstream app_admin {
+    server app-admin:9000;
+}
+
+map $host $fastcgi_backend {
+    default "";
+    ${APP_HOST_ORDER} app_order;
+    ${APP_HOST_ADMIN} app_admin;
+}
+
+server {
+    listen 8080 default_server;
+    server_name "";
+    return 444;
+}
+
+server {
+    listen 8080;
+    server_name ${APP_HOST_ORDER} ${APP_HOST_ADMIN};
+    root /app/public;
+    index index.php;
+    charset utf-8;
+    server_tokens off;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /index.php {
+        include fastcgi_params;
+        fastcgi_pass $fastcgi_backend;
+        fastcgi_param SCRIPT_FILENAME /app/public/index.php;
+        fastcgi_param DOCUMENT_ROOT /app/public;
+        fastcgi_param HTTP_HOST $host;
+        fastcgi_param HTTP_PROXY "";
+    }
+
+    location ~ \.php$ {
+        return 404;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}

@@ -13,7 +13,12 @@ export default defineConfig(({ mode }) => {
     return {
         plugins: [
             laravel({
-                input: ['resources/js/app.ts'],
+                input: [
+                    'resources/js/order.ts',
+                    'resources/js/admin.ts',
+                    'resources/scss/order.scss',
+                    'resources/scss/admin.scss',
+                ],
                 refresh: true,
             }),
             vue(),
@@ -30,7 +35,11 @@ export default defineConfig(({ mode }) => {
             port,
             strictPort: true,
             cors: {
-                origin: env.APP_URL || 'http://localhost:8000',
+                origin: [
+                    env.APP_URL_ORDER || 'http://order.localhost:8000',
+                    env.APP_URL_ADMIN || 'http://admin.localhost:8000',
+                    env.APP_URL || 'http://localhost:8000',
+                ],
             },
             hmr: {
                 host: 'localhost',

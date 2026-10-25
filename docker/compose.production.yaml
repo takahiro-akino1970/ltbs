@@ -1,0 +1,82 @@
+name: ltbs-production
+
+services:
+  app-order:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: app-production
+    init: true
+    restart: unless-stopped
+    env_file:
+      - ./production/order.env
+    environment:
+      APP_PORTAL: order
+      BUSINESS_FILES_PATH: /shared/business-files
+    volumes:
+      - order_storage:/app/storage
+      - business_files:/shared/business-files
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "SCRIPT_NAME=/fpm-ping SCRIPT_FILENAME=/fpm-ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -q pong"
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+
+  app-admin:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: app-production
+    init: true
+    restart: unless-stopped
+    env_file:
+      - ./production/admin.env
+    environment:
+      APP_PORTAL: admin
+      BUSINESS_FILES_PATH: /shared/business-files
+    volumes:
+      - admin_storage:/app/storage
+      - business_files:/shared/business-files
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "SCRIPT_NAME=/fpm-ping SCRIPT_FILENAME=/fpm-ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -q pong"
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 5
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: web-production
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file:
+      - ./production/web.env
+    environment:
+      NGINX_ENVSUBST_FILTER: "^APP_HOST_"
+    depends_on:
+      app-order:
+        condition: service_healthy
+      app-admin:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'wget -q -O /dev/null --header="Host: $${APP_HOST_ORDER}" http://127.0.0.1:8080/up'
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+
+volumes:
+  order_storage:
+  admin_storage:
+  business_files:

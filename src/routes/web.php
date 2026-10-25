@@ -1,10 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+$portal = config('app.portal');
 
-Route::get('/', function () {
-    return Inertia::render('Home', [
-        'appName' => config('app.name'),
-    ]);
-})->name('home');
+if (! in_array($portal, ['order', 'admin'], true)) {
+    throw new RuntimeException('APP_PORTAL must be set to order or admin.');
+}
+
+require __DIR__."/{$portal}.php";

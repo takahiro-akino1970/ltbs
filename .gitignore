@@ -1,6 +1,8 @@
 .env
 .env.*
 !.env.example
+docker/production/*.env
+docker/local/*.env
 .DS_Store
 # Logs
 logs

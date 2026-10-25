@@ -34,14 +34,19 @@
 - Vue は Composition API と `<script setup lang="ts">` を使用する。
 - props やイベントには型を定義し、不要な `any` や型アサーションでエラーを回避しない。
 - 独立した SPA や Vue Router は使用していない。既存の Inertia 構成に合わせる。
-- エントリーポイントは `src/resources/js/app.ts`。
-- スタイルは `src/resources/scss/app.scss` に配置し、Bootstrap を `@use` で読み込む。
+- JavaScript エントリーポイントは `src/resources/js/order.ts` と `src/resources/js/admin.ts`。
+- Vue ページは `src/resources/js/pages/order/` と `src/resources/js/pages/admin/` に分ける。
+- ポータル別スタイルは `src/resources/scss/order.scss` と `src/resources/scss/admin.scss` に配置する。
+- Bootstrap の共通設定は `src/resources/scss/_bootstrap.scss` に配置し、各エントリーから `@use` で読み込む。
+- アプリ共通スタイルは `src/resources/scss/app.scss` に配置する。
 - Bootstrap の変数は `with (...)` でカスタマイズする。Vue SFC の SCSS も利用できる。
 - ダークモードは `prefers-color-scheme` に連動する。
 - Bootstrap Tooltip / Popover は必要な箇所で初期化し、Vue のアンマウント時に `dispose()` する。
 - Vite の `quietDeps: true` は依存パッケージの Sass 警告用。アプリの警告を無効化しない。
 - 既存の命名、フォーマット、日本語の画面文言に合わせる。
 - 入力検証・認可は必要に応じて Laravel 側で実施し、フロントエンドだけに依存しない。
+- 新規作成するテーブルには原則として nullable な `deleted_at` を追加し、論理削除を前提に設計する。明確に不要な理由がある場合のみ省略し、その理由を記録する。
+- 論理削除の実装では、削除済みデータの参照・認証対象からの除外、一意制約、復元、初期登録済み判定への影響も確認する。
 
 ## Docker構成
 
@@ -54,7 +59,7 @@
 - `src/node_modules` はホストとコンテナで共有する。npm 操作はコンテナ側に統一し、同時実行しない。
 - Composer の `vendor` と MariaDB の `mariadb_data` は名前付きボリュームで保存する。
 - ホストの UID/GID に合わせて `LOCAL_UID` / `LOCAL_GID` を設定する。
-- この Compose は開発専用。起動時に依存関係のインストールとマイグレーションを行う。
+- この Compose は開発専用。起動時に依存関係をインストールするが、マイグレーションは自動実行しない。
 
 ## 開発・検証コマンド
 

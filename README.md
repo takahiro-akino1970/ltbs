@@ -18,6 +18,9 @@ GitHub Copilot向けの技術構成・開発方針は
 | [データベース](doc/database.md)                      | MariaDB接続、永続化、認証情報、業務テーブル設計案             |
 | [開発ガイド](doc/development.md)                     | Artisan、依存パッケージ、検証、ローカル開発、Sass / Bootstrap |
 | [要件定義書（たたき台）](doc/要件定義書_たたき台.md) | 業務要件・機能の初期案                                        |
+| [発注側画面・URL設計案](doc/order-screens.md)         | 発注側の画面ひな型、URL、画面遷移、実装順序                   |
+| [受注・管理側画面・URL設計案](doc/admin-screens.md)   | 受注・管理側の画面ひな型、URL、画面遷移、実装順序             |
+| [得意先の利用許可・初期管理者登録方針](doc/customer-onboarding.md) | 署名付き一時URL、メール案内、登録時の検証、保存情報の案 |
 | [参考画面](doc/陸送発注.png)                         | 陸送発注画面の参考資料                                        |
 
 開発環境の準備は [Docker環境](doc/docker.md) から始めてください。

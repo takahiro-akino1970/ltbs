@@ -1,0 +1,12 @@
+.git
+.vscode
+**/node_modules
+**/vendor
+**/.env
+**/.env.*
+!**/.env.example
+docker/production.env
+src/database/*.sqlite
+src/.phpunit.result.cache
+src/storage/logs/*
+src/bootstrap/cache/*

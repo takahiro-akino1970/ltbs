@@ -1,0 +1,7 @@
+@use "bootstrap" as bootstrap;
+@use "app";
+
+:root {
+    --ltbs-portal: "order";
+    --ltbs-primary: #{bootstrap.$primary};
+}
