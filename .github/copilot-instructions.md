@@ -12,7 +12,7 @@
 | 領域 | 使用技術 |
 | --- | --- |
 | バックエンド | PHP 8.4、Laravel 13、PHP-FPM |
-| フロントエンド連携 | Inertia.js 3（Laravel / Vue アダプター） |
+| フロントエンド連携 | Axiosによる同一Laravel内のJSON API |
 | フロントエンド | Vue 3、TypeScript 5（strict モード） |
 | スタイル | Sass（SCSS）、Bootstrap 5.3 |
 | UI JavaScript | Bootstrap、Popper.js |
@@ -29,17 +29,19 @@
 ## 配置と実装方針
 
 - Laravel アプリケーションは `src/`、Docker 設定は `docker/`、資料は `doc/` に配置する。
-- Laravel のルートは `src/routes/web.php` に定義し、`Inertia::render()` で Vue ページを返す。
+- 画面ルートは `src/routes/web.php` 系に定義し、VueをマウントするHTMLシェルを返す。画面データは同一Laravel内のJSON APIからAxiosで取得する。
 - ページは `src/resources/js/pages/` の Vue SFC に配置する。
 - Vue は Composition API と `<script setup lang="ts">` を使用する。
 - props やイベントには型を定義し、不要な `any` や型アサーションでエラーを回避しない。
-- 独立した SPA や Vue Router は使用していない。既存の Inertia 構成に合わせる。
+- 画面遷移は通常のリンクによるフルページ遷移とし、独立したSPAやVue Routerは使用しない。
 - JavaScript エントリーポイントは `src/resources/js/order.ts` と `src/resources/js/admin.ts`。
 - Vue ページは `src/resources/js/pages/order/` と `src/resources/js/pages/admin/` に分ける。
 - ポータル別スタイルは `src/resources/scss/order.scss` と `src/resources/scss/admin.scss` に配置する。
 - Bootstrap の共通設定は `src/resources/scss/_bootstrap.scss` に配置し、各エントリーから `@use` で読み込む。
 - アプリ共通スタイルは `src/resources/scss/app.scss` に配置する。
 - Bootstrap の変数は `with (...)` でカスタマイズする。Vue SFC の SCSS も利用できる。
+- Figma MCPで画面を実装する場合は、対象ノードのデザイン情報と画面画像を参照し、生成コードをそのまま採用せず既存のVue・SCSS構成に合わせる。対象ノードが不明な場合は推測しない。
+- Figmaの表示だけから未確定の業務仕様やAPI要件を確定扱いしない。Figmaへの書き戻しは明示的に依頼された場合に限り、認証情報をリポジトリに保存しない。
 - ダークモードは `prefers-color-scheme` に連動する。
 - Bootstrap Tooltip / Popover は必要な箇所で初期化し、Vue のアンマウント時に `dispose()` する。
 - Vite の `quietDeps: true` は依存パッケージの Sass 警告用。アプリの警告を無効化しない。

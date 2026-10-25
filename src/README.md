@@ -1,6 +1,6 @@
 # LTBS アプリケーション
 
-Laravel 13 + Inertia.js 3 + Vue 3 + TypeScript のひな型です。
+Laravel 13 + Vue 3 + TypeScript のひな型です。画面データはAxiosでJSON APIから取得します。
 
 詳しい手順は以下を参照してください。
 

@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
-use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class CustomerController extends Controller
 {
@@ -19,7 +17,7 @@ class CustomerController extends Controller
      */
     private const STATUSES = ['active', 'inactive', 'all'];
 
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
         $keyword = trim((string) $request->query('keyword', ''));
         $status = (string) $request->query('status', 'active');
@@ -28,17 +26,32 @@ class CustomerController extends Controller
             $status = 'active';
         }
 
-        return Inertia::render('admin/customers/Index', [
+        $customers = $this->query($keyword, $status)
+            ->cursorPaginate(self::PER_PAGE)
+            ->withQueryString();
+
+        return response()->json([
             'filters' => [
                 'keyword' => $keyword,
                 'status' => $status,
             ],
-            'customers' => Inertia::scroll(
-                fn (): CursorPaginator => $this->query($keyword, $status)
-                    ->cursorPaginate(self::PER_PAGE)
-                    ->withQueryString()
-            ),
+            'customers' => $customers,
         ]);
+    }
+
+    public function options(): JsonResponse
+    {
+        $customers = Customer::query()
+            ->where('avail_flg', 1)
+            ->orderBy('customer_name')
+            ->get(['id', 'customer_code', 'customer_name'])
+            ->map(static fn (Customer $customer): array => [
+                'id' => $customer->id,
+                'customer_code' => $customer->customer_code,
+                'customer_name' => $customer->customer_name,
+            ]);
+
+        return response()->json(['data' => $customers]);
     }
 
     /**

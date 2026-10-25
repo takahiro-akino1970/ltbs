@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
 import OrderLayout from '../../layouts/order/OrderLayout.vue';
 
 const statusSummary = [
@@ -17,18 +16,18 @@ const statusSummary = [
         lead="発注状況の概要と最近の発注を確認します。"
     >
         <template #actions>
-            <Link
+            <a
                 href="/orders/create"
                 class="btn btn-primary btn-sm"
             >
                 新規発注
-            </Link>
-            <Link
+            </a>
+            <a
                 href="/orders"
                 class="btn btn-outline-secondary btn-sm"
             >
                 発注履歴
-            </Link>
+            </a>
         </template>
 
         <div class="row g-3 mb-3">

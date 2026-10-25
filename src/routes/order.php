@@ -1,22 +1,27 @@
 <?php
 
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/login', fn () => Inertia::render('order/auth/Login'))->name('login');
+$page = static fn (string $component, array $props = []): View => view('app', [
+    'page' => $component,
+    'props' => $props,
+]);
 
-Route::get('/', fn () => Inertia::render('order/Dashboard'))->name('dashboard');
+Route::get('/login', fn () => $page('order/auth/Login'))->name('login');
 
-Route::prefix('orders')->name('orders.')->group(function () {
-    Route::get('/', fn () => Inertia::render('order/orders/Index'))->name('index');
+Route::get('/', fn () => $page('order/Dashboard'))->name('dashboard');
 
-    Route::get('/create', fn () => Inertia::render('order/orders/Create'))->name('create');
+Route::prefix('orders')->name('orders.')->group(function () use ($page): void {
+    Route::get('/', fn () => $page('order/orders/Index'))->name('index');
 
-    Route::get('/{order}', fn (string $order) => Inertia::render('order/orders/Show', [
+    Route::get('/create', fn () => $page('order/orders/Create'))->name('create');
+
+    Route::get('/{order}', fn (string $order) => $page('order/orders/Show', [
         'orderNumber' => $order,
     ]))->name('show');
 
-    Route::get('/{order}/reorder', fn (string $order) => Inertia::render('order/orders/Reorder', [
+    Route::get('/{order}/reorder', fn (string $order) => $page('order/orders/Reorder', [
         'orderNumber' => $order,
     ]))->name('reorder');
 });

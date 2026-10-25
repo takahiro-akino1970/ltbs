@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
 import AdminLayout from '../../../layouts/admin/AdminLayout.vue';
 import type { AdminBreadcrumb } from '../../../types/admin';
 
@@ -94,9 +93,9 @@ const progressGroups = [
                     <tbody>
                         <tr>
                             <td>
-                                <Link href="/orders/ORD-2026-002">
+                                <a href="/orders/ORD-2026-002">
                                     ORD-2026-002
-                                </Link>
+                                </a>
                             </td>
                             <td>テスト商事株式会社</td>
                             <td class="text-nowrap">

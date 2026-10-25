@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { Offcanvas } from 'bootstrap';
 import AdminSideNav from '../../components/admin/AdminSideNav.vue';
+import { useAppConfig } from '../../appConfig';
 import type { AdminBreadcrumb, AdminNavItem } from '../../types/admin';
 
-withDefaults(
+const props = withDefaults(
     defineProps<{
         title: string;
         lead?: string;
@@ -17,9 +17,8 @@ withDefaults(
     },
 );
 
-const page = usePage();
-const appName = computed(() => page.props.appName);
-const currentPath = computed(() => page.url.split('?')[0] ?? '/');
+const { appName } = useAppConfig();
+const currentPath = window.location.pathname;
 
 const sideNavItems: AdminNavItem[] = [
     { label: 'ダッシュボード', href: '/', available: true },
@@ -54,33 +53,29 @@ function resolveActiveHref(items: AdminNavItem[], path: string): string {
     );
 }
 
-const activeSideHref = computed(() => resolveActiveHref(sideNavItems, currentPath.value));
-const activeBottomHref = computed(() => resolveActiveHref(bottomNavItems, currentPath.value));
+const activeSideHref = computed(() => resolveActiveHref(sideNavItems, currentPath));
+const activeBottomHref = computed(() => resolveActiveHref(bottomNavItems, currentPath));
 
 const sideNavElement = ref<HTMLElement | null>(null);
 let sideNavOffcanvas: Offcanvas | null = null;
-let stopNavigationListener: (() => void) | null = null;
 
 onMounted(() => {
+    document.title = `${props.title} | ${appName}`;
+
     if (sideNavElement.value === null) {
         return;
     }
 
     sideNavOffcanvas = Offcanvas.getOrCreateInstance(sideNavElement.value);
-    stopNavigationListener = router.on('start', () => sideNavOffcanvas?.hide());
 });
 
 onBeforeUnmount(() => {
-    stopNavigationListener?.();
-    stopNavigationListener = null;
     sideNavOffcanvas?.dispose();
     sideNavOffcanvas = null;
 });
 </script>
 
 <template>
-    <Head :title="title" />
-
     <div class="admin-shell min-vh-100 d-flex flex-column bg-body-tertiary">
         <header class="admin-header border-bottom bg-body">
             <div class="container-fluid d-flex align-items-center gap-2 gap-md-3 py-2">
@@ -94,12 +89,12 @@ onBeforeUnmount(() => {
                     メニュー
                 </button>
 
-                <Link
+                <a
                     href="/"
                     class="fw-bold text-body text-decoration-none text-nowrap"
                 >
                     {{ appName }}
-                </Link>
+                </a>
 
                 <div class="d-none d-md-block flex-grow-1">
                     <input
@@ -139,28 +134,28 @@ onBeforeUnmount(() => {
 
                 <main class="col-lg-9 col-xl-10 py-3 px-lg-4">
                     <nav
-                        v-if="breadcrumbs.length > 0"
+                        v-if="props.breadcrumbs.length > 0"
                         aria-label="パンくずリスト"
                     >
                         <ol class="breadcrumb small">
                             <li class="breadcrumb-item">
-                                <Link href="/">
+                                <a href="/">
                                     ダッシュボード
-                                </Link>
+                                </a>
                             </li>
                             <li
-                                v-for="(crumb, index) in breadcrumbs"
+                                v-for="(crumb, index) in props.breadcrumbs"
                                 :key="crumb.label"
                                 class="breadcrumb-item"
-                                :class="{ active: index === breadcrumbs.length - 1 }"
-                                :aria-current="index === breadcrumbs.length - 1 ? 'page' : undefined"
+                                :class="{ active: index === props.breadcrumbs.length - 1 }"
+                                :aria-current="index === props.breadcrumbs.length - 1 ? 'page' : undefined"
                             >
-                                <Link
-                                    v-if="crumb.href && index !== breadcrumbs.length - 1"
+                                <a
+                                    v-if="crumb.href && index !== props.breadcrumbs.length - 1"
                                     :href="crumb.href"
                                 >
                                     {{ crumb.label }}
-                                </Link>
+                                </a>
                                 <span v-else>{{ crumb.label }}</span>
                             </li>
                         </ol>
@@ -169,13 +164,13 @@ onBeforeUnmount(() => {
                     <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
                         <div>
                             <h1 class="h4 mb-1">
-                                {{ title }}
+                                {{ props.title }}
                             </h1>
                             <p
-                                v-if="lead"
+                                v-if="props.lead"
                                 class="text-body-secondary small mb-0"
                             >
-                                {{ lead }}
+                                {{ props.lead }}
                             </p>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
@@ -198,7 +193,7 @@ onBeforeUnmount(() => {
                     :key="item.href"
                     class="nav-item"
                 >
-                    <Link
+                    <a
                         v-if="item.available"
                         :href="item.href"
                         class="nav-link small py-2"
@@ -206,7 +201,7 @@ onBeforeUnmount(() => {
                         :aria-current="item.href === activeBottomHref ? 'page' : undefined"
                     >
                         {{ item.label }}
-                    </Link>
+                    </a>
                     <span
                         v-else
                         class="nav-link small py-2 disabled"

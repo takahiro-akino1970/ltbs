@@ -2,12 +2,18 @@
 
 namespace Tests\Feature;
 
-use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class OrderPortalTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->usePortal('order');
+    }
+
     /**
      * @return array<string, array{string, string}>
      */
@@ -24,16 +30,15 @@ class OrderPortalTest extends TestCase
     }
 
     #[DataProvider('pageProvider')]
-    public function test_order_pages_render_the_expected_inertia_component(string $uri, string $component): void
+    public function test_order_pages_render_the_expected_vue_page(string $uri, string $component): void
     {
         $this->withoutVite()
             ->get($uri)
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component($component)
-                ->where('appName', config('app.name'))
-                ->where('portal', 'order')
-            );
+            ->assertViewIs('app')
+            ->assertViewHas('page', $component)
+            ->assertSee('data-portal="order"', false)
+            ->assertSee('id="page-props"', false);
     }
 
     public function test_order_detail_pages_receive_the_order_number(): void
@@ -41,34 +46,16 @@ class OrderPortalTest extends TestCase
         $this->withoutVite()
             ->get('/orders/ORD-0001')
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('order/orders/Show')
-                ->where('orderNumber', 'ORD-0001')
-            );
+            ->assertViewHas('props', ['orderNumber' => 'ORD-0001']);
     }
 
-    public function test_inertia_navigation_returns_page_json(): void
+    public function test_order_page_uses_the_html_shell_for_normal_navigation(): void
     {
-        $initialResponse = $this->withoutVite()->get('/')->assertOk();
-
-        $this->get('/', [
-            'X-Inertia' => 'true',
-            'X-Inertia-Version' => $initialResponse->viewData('page')['version'],
-        ])
+        $this->withoutVite()
+            ->get('/')
             ->assertOk()
-            ->assertHeader('X-Inertia', 'true')
-            ->assertJsonPath('component', 'order/Dashboard')
-            ->assertJsonPath('props.appName', config('app.name'));
-    }
-
-    public function test_outdated_inertia_assets_require_a_full_page_reload(): void
-    {
-        $this->get('/', [
-            'X-Inertia' => 'true',
-            'X-Inertia-Version' => 'outdated-version',
-        ])
-            ->assertStatus(409)
-            ->assertHeader('X-Inertia-Location', url('/'));
+            ->assertHeader('content-type', 'text/html; charset=UTF-8')
+            ->assertSee('data-page="order/Dashboard"', false);
     }
 
     public function test_order_portal_does_not_expose_admin_only_routes(): void

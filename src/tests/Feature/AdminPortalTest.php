@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\DB;
-use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -33,18 +32,15 @@ class AdminPortalTest extends TestCase
     }
 
     #[DataProvider('pageProvider')]
-    public function test_admin_pages_render_the_expected_inertia_component(string $uri, string $component): void
+    public function test_admin_pages_render_the_expected_vue_page(string $uri, string $component): void
     {
         $this->withoutVite()
             ->get($uri)
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component($component)
-                ->where('appName', config('app.name'))
-                ->where('portal', 'admin')
-                ->has('customerOptions', 1)
-                ->where('customerOptions.0.customer_name', 'テスト得意先')
-            );
+            ->assertViewIs('app')
+            ->assertViewHas('page', $component)
+            ->assertSee('data-portal="admin"', false)
+            ->assertSee('id="page-props"', false);
     }
 
     public function test_admin_order_detail_receives_the_order_number(): void
@@ -52,84 +48,105 @@ class AdminPortalTest extends TestCase
         $this->withoutVite()
             ->get('/orders/ORD-0001')
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/orders/Show')
-                ->where('orderNumber', 'ORD-0001')
-            );
+            ->assertViewHas('props', ['orderNumber' => 'ORD-0001']);
     }
 
-    public function test_admin_customer_index_lists_active_customers_with_scroll_metadata(): void
+    public function test_admin_customer_api_lists_active_customers_with_cursor_metadata(): void
     {
-        $response = $this->withoutVite()->get('/customers');
+        $response = $this->getJson('/api/admin/customers');
 
         $response->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/customers/Index')
-                ->where('filters.keyword', '')
-                ->where('filters.status', 'active')
-                ->has('customers.data', 1)
-                ->where('customers.data.0.customer_name', 'テスト得意先')
-                ->where('customers.data.0.customer_code', 'CUST-001')
-                ->where('customers.data.0.avail_flg', true)
-                ->has('customers.next_cursor')
-            );
+            ->assertJsonPath('filters.keyword', '')
+            ->assertJsonPath('filters.status', 'active')
+            ->assertJsonPath('customers.data.0.customer_name', 'テスト得意先')
+            ->assertJsonPath('customers.data.0.customer_code', 'CUST-001')
+            ->assertJsonPath('customers.data.0.avail_flg', true)
+            ->assertJsonStructure(['customers' => ['data', 'next_cursor', 'next_page_url']]);
+    }
 
-        $page = $response->viewData('page');
+    public function test_admin_customer_api_returns_the_next_cursor_page(): void
+    {
+        $additionalCustomers = collect(range(3, 52))
+            ->map(static fn (int $id): array => [
+                'id' => $id,
+                'customer_code' => "CUST-{$id}",
+                'customer_name' => "追加得意先{$id}",
+                'avail_flg' => 1,
+            ])
+            ->all();
 
-        $this->assertArrayHasKey('customers', $page['scrollProps']);
-        $this->assertSame('cursor', $page['scrollProps']['customers']['pageName']);
+        DB::table('db_stsystem.customers')->insert($additionalCustomers);
+
+        $firstPage = $this->getJson('/api/admin/customers')
+            ->assertOk()
+            ->assertJsonCount(50, 'customers.data');
+
+        $cursor = $firstPage->json('customers.next_cursor');
+        $this->assertIsString($cursor);
+
+        $this->getJson('/api/admin/customers?cursor='.urlencode($cursor))
+            ->assertOk()
+            ->assertJsonCount(1, 'customers.data')
+            ->assertJsonPath('customers.next_cursor', null);
     }
 
     public function test_admin_customer_index_can_filter_by_keyword(): void
     {
-        $this->withoutVite()
-            ->get('/customers?keyword='.urlencode('カナ'))
+        $this->getJson('/api/admin/customers?keyword='.urlencode('カナ'))
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('admin/customers/Index')
-                ->where('filters.keyword', 'カナ')
-                ->has('customers.data', 0)
-            );
+            ->assertJsonPath('filters.keyword', 'カナ')
+            ->assertJsonCount(0, 'customers.data');
 
-        $this->withoutVite()
-            ->get('/customers?keyword=CUST-001')
+        $this->getJson('/api/admin/customers?keyword=CUST-001')
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->has('customers.data', 1)
-                ->where('customers.data.0.customer_code', 'CUST-001')
-            );
+            ->assertJsonCount(1, 'customers.data')
+            ->assertJsonPath('customers.data.0.customer_code', 'CUST-001');
     }
 
     public function test_admin_customer_index_can_filter_by_status(): void
     {
-        $this->withoutVite()
-            ->get('/customers?status=inactive')
+        $this->getJson('/api/admin/customers?status=inactive')
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('filters.status', 'inactive')
-                ->has('customers.data', 1)
-                ->where('customers.data.0.customer_name', '無効得意先')
-                ->where('customers.data.0.avail_flg', false)
-            );
+            ->assertJsonPath('filters.status', 'inactive')
+            ->assertJsonCount(1, 'customers.data')
+            ->assertJsonPath('customers.data.0.customer_name', '無効得意先')
+            ->assertJsonPath('customers.data.0.avail_flg', false);
 
-        $this->withoutVite()
-            ->get('/customers?status=all')
+        $this->getJson('/api/admin/customers?status=all')
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('filters.status', 'all')
-                ->has('customers.data', 2)
-            );
+            ->assertJsonPath('filters.status', 'all')
+            ->assertJsonCount(2, 'customers.data');
     }
 
     public function test_admin_customer_index_falls_back_to_the_default_status(): void
     {
-        $this->withoutVite()
-            ->get('/customers?status=unknown')
+        $this->getJson('/api/admin/customers?status=unknown')
             ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('filters.status', 'active')
-                ->has('customers.data', 1)
-            );
+            ->assertJsonPath('filters.status', 'active')
+            ->assertJsonCount(1, 'customers.data');
+    }
+
+    public function test_admin_customer_options_api_returns_active_customers(): void
+    {
+        $this->getJson('/api/admin/customer-options')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.customer_name', 'テスト得意先')
+            ->assertJsonPath('data.0.customer_code', 'CUST-001');
+    }
+
+    public function test_admin_customer_page_keeps_initial_filters_in_the_url_and_page_props(): void
+    {
+        $this->withoutVite()
+            ->get('/customers?keyword=CUST-001&status=inactive')
+            ->assertOk()
+            ->assertViewHas('page', 'admin/customers/Index')
+            ->assertViewHas('props', [
+                'filters' => [
+                    'keyword' => 'CUST-001',
+                    'status' => 'inactive',
+                ],
+            ]);
     }
 
     private function prepareCustomerSchema(): void

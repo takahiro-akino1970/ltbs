@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
 import type { OrderNavItem } from '../../types/order';
 
 defineProps<{
@@ -17,7 +16,7 @@ defineProps<{
             v-for="item in items"
             :key="item.href"
         >
-            <Link
+            <a
                 v-if="item.available"
                 :href="item.href"
                 class="nav-link rounded px-3 py-2"
@@ -25,7 +24,7 @@ defineProps<{
                 :aria-current="item.href === activeHref ? 'page' : undefined"
             >
                 {{ item.label }}
-            </Link>
+            </a>
             <span
                 v-else
                 class="nav-link disabled rounded px-3 py-2 d-flex align-items-center justify-content-between gap-2"

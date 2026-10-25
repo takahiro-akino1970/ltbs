@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
 import AdminLayout from '../../layouts/admin/AdminLayout.vue';
 
 const statusSummary = [
@@ -24,18 +23,18 @@ const todaySummary = [
         lead="受注・輸送状況と、対応が必要な発注を確認します。"
     >
         <template #actions>
-            <Link
+            <a
                 href="/orders"
                 class="btn btn-primary btn-sm"
             >
                 発注管理
-            </Link>
-            <Link
+            </a>
+            <a
                 href="/operations"
                 class="btn btn-outline-secondary btn-sm"
             >
                 輸送進捗
-            </Link>
+            </a>
         </template>
 
         <div class="row g-3 mb-3">
@@ -67,7 +66,7 @@ const todaySummary = [
                         <span class="badge text-bg-danger">3件</span>
                     </div>
                     <div class="list-group list-group-flush">
-                        <Link
+                        <a
                             href="/orders/ORD-2026-001"
                             class="list-group-item list-group-item-action"
                         >
@@ -76,7 +75,7 @@ const todaySummary = [
                                 <span class="badge text-bg-danger">未対応</span>
                             </div>
                             <small class="text-body-secondary">引取希望: 2026/10/16 09:00</small>
-                        </Link>
+                        </a>
                         <div class="list-group-item text-body-secondary small">
                             この一覧は表示確認用のサンプルです。
                         </div>

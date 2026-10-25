@@ -20,12 +20,12 @@
 │   ├── routes/order.php   # 発注側のルーティング
 │   ├── routes/admin.php   # 管理側のルーティング
 │   ├── resources/
-│   │   ├── js/order.ts    # 発注側 Vue / Inertia エントリーポイント
-│   │   ├── js/admin.ts    # 管理側 Vue / Inertia エントリーポイント
+│   │   ├── js/order.ts    # 発注側 Vue エントリーポイント
+│   │   ├── js/admin.ts    # 管理側 Vue エントリーポイント
 │   │   ├── js/pages/      # 発注側・管理側の Vue SFC（TypeScript）
 │   │   ├── js/layouts/    # ポータル別の共通レイアウト
 │   │   ├── js/components/ # ポータル別の再利用UI部品
-│   │   ├── js/types/      # 共有する型定義・Inertia の型拡張
+│   │   ├── js/types/      # 共有する型定義
 │   │   ├── scss/          # ポータル別エントリー、Bootstrap 設定、共通スタイル
 │   │   └── views/app.blade.php
 │   ├── database/          # マイグレーション・旧SQLiteファイル
@@ -35,23 +35,24 @@
 
 ## アプリケーション
 
-Laravel 13 + Inertia.js 3 + Vue 3 + TypeScript を使用します。
+Laravel 13 + Vue 3 + TypeScript を使用します。画面データの取得・更新には
+Axios で同一LaravelアプリケーションのJSON APIを呼び出します。
 スタイルは Sass（SCSS）と Bootstrap 5.3 を使用します。
 
-Laravel のルートから `Inertia::render()` で Vue ページを返す構成です。
-独立した SPA 用 API サーバーや Vue Router は使用していません。
+LaravelのWebルートはVueページを含むHTMLシェルを返し、画面遷移は通常のリンクで
+ページ全体を再読み込みします。APIは同じアプリケーション内の `/api/...` URLでJSONを
+返し、独立したAPIサーバーやVue Routerは使用しません。
 
 ## 一覧テーブルと無限スクロール
 
 発注側・管理側の一覧テーブルは、ページ番号によるページネーションではなく
 無限スクロールを使用します。独自の `IntersectionObserver` 実装や追加の
-無限スクロールライブラリは導入せず、現在採用している Inertia.js 3 の
-[`Inertia::scroll()`](https://inertiajs.com/docs/v3/data-props/infinite-scroll) と
-Vue用 `<InfiniteScroll>` コンポーネントを使用します。
+無限スクロールライブラリは導入せず、ブラウザー標準の `IntersectionObserver` と
+JSON APIのカーソルページネーションを使用します。
 
 ### サーバー側
 
-- 一覧データは `Inertia::scroll()` で返し、Eloquent の `cursorPaginate()` を基本とします。
+- 一覧データはJSONで返し、Eloquent の `cursorPaginate()` を基本とします。
 - 1回の取得件数は50件を初期値とし、実データ量と応答時間を計測して調整します。
 - カーソルの前後で順序が不定にならないよう、業務上の並び順に加えて主キーを
   最後の並び順へ必ず含めます。
@@ -60,27 +61,25 @@ Vue用 `<InfiniteScroll>` コンポーネントを使用します。
 
 ### Vue側
 
-- `<InfiniteScroll data="...">` へ `Inertia::scroll()` で返したprop名を指定します。
-- 検索条件または並び順の変更時は、Inertia visitの `only` と `reset` に対象propを指定し、
-  既に読み込んだ別条件の行が新しい結果へ混在しないようにします。
+- `IntersectionObserver` で末尾を監視し、次のカーソルをAPIへ渡して行を追加します。
+- 検索条件または並び順の変更時は一覧をリセットして先頭ページを取得し、別条件の行が
+  新しい結果へ混在しないようにします。検索条件はクエリーパラメーターとしてURLに保持します。
 - 行の `key` には配列添字ではなく、発注IDなどの不変かつ一意な値を使用します。
-- 既定のURL同期を使用し、表示位置に対応するページまたはカーソルを履歴へ保持します。
-  画面内の副次的な一覧など、スクロール位置をURLへ反映すべきでない場合だけ
-  `preserve-url` を使用します。
+- カーソルは一覧の追加取得に使い、URLには検索・絞り込み条件を保持します。
 - 読み込み中、終端、0件、通信失敗をそれぞれ区別して表示します。通信失敗を
   0件または読込完了として扱わず、再試行操作を表示します。
 - 読み込み状態は `aria-live` で通知し、行追加時にフォーカスを移動しません。
   キーボード操作向けに「さらに読み込む」操作も提供できる構成にします。
 
-HTMLのtable構造を壊さないよう、`<InfiniteScroll>` を単純にtableの内外へ
-`div` として挿入しません。テーブルで使用する場合は `as="tbody"` とし、
-開始・終了の監視要素をtable外の要素として `start-element` / `end-element` に渡します。
-複数画面で実装する段階で、この構造とローディング表示を共通Vueコンポーネントへまとめます。
+HTMLのtable構造を壊さないよう、監視用の要素はテーブルの外に配置し、
+行の追加・ローディング表示は `tbody` 内で管理します。
 
 無限スクロールは通信回数を分割しますが、読み込み済み行を自動的に仮想化する機能ではありません。
-まずはInertia標準機能で実装し、長時間操作時のDOM要素数とメモリー使用量を計測します。
-実測上の問題が確認された場合に限り、手動読込へ切り替える `manual-after` または
+長時間操作時のDOM要素数とメモリー使用量を計測し、必要な場合は手動読込や
 テーブル向け仮想スクロールの導入を別途検討します。
+
+APIクライアントは同一オリジンでCookieを送信し、AxiosのXSRFヘッダー連携を有効にします。
+認証・認可は未実装のため、実装時にはAPIルートの認可とCSRF保護を個別に検証します。
 
 ## 開発環境
 

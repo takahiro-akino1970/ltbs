@@ -12,9 +12,15 @@
             };
         @endphp
         @vite($assets)
-        @inertiaHead
+        <title>{{ config('app.name') }}</title>
     </head>
     <body>
-        @inertia
+        <div
+            id="app"
+            data-app-name="{{ config('app.name') }}"
+            data-portal="{{ config('app.portal') }}"
+            data-page="{{ $page }}"
+        ></div>
+        <script id="page-props" type="application/json">@json($props, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)</script>
     </body>
 </html>

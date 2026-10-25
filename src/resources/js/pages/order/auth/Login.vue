@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { Head, usePage } from '@inertiajs/vue3';
+import { onMounted } from 'vue';
+import { useAppConfig } from '../../../appConfig';
 
-const page = usePage();
+const { appName } = useAppConfig();
 
-const appName = computed(() => page.props.appName);
+onMounted(() => {
+    document.title = `ログイン | ${appName}`;
+});
 </script>
 
 <template>
-    <Head title="ログイン" />
-
     <main class="min-vh-100 d-flex align-items-center justify-content-center bg-body-tertiary p-3">
         <div class="card shadow-sm w-100 login-card">
             <div class="card-body p-4">

@@ -1,7 +1,7 @@
 # LTBS
 
 Land Transport Booking System（陸送発注管理システム）のひな型です。
-Laravel 13 + Inertia.js 3 + Vue 3 + TypeScript を使用します。
+Laravel 13 + Vue 3 + TypeScript を使用し、画面データはAxiosでJSON APIから取得します。
 スタイルは Sass（SCSS）と Bootstrap 5.3 を使用します。
 認証、PWA、業務機能はまだ実装していません。
 
@@ -12,11 +12,11 @@ GitHub Copilot向けの技術構成・開発方針は
 
 | 資料                                                 | 内容                                                          |
 | ---------------------------------------------------- | ------------------------------------------------------------- |
-| [構成概要](doc/architecture.md)                      | ディレクトリ構成、Laravel / Inertia、Nginx / PHP-FPM          |
+| [構成概要](doc/architecture.md)                      | ディレクトリ構成、Laravel / Vue / JSON API、Nginx / PHP-FPM   |
 | [Docker環境](doc/docker.md)                          | 初回セットアップ、起動・停止、ポート、ファイル共有            |
 | [本番配置](doc/production.md)                         | ホスト Nginx、Docker 上のアプリ、外部 MariaDB                 |
 | [データベース](doc/database.md)                      | MariaDB接続、永続化、認証情報、業務テーブル設計案             |
-| [開発ガイド](doc/development.md)                     | Artisan、依存パッケージ、検証、ローカル開発、Sass / Bootstrap |
+| [開発ガイド](doc/development.md)                     | 開発・検証、ローカル環境、Sass / Bootstrap、Figma MCP連携    |
 | [要件定義書（たたき台）](doc/要件定義書_たたき台.md) | 業務要件・機能の初期案                                        |
 | [発注側画面・URL設計案](doc/order-screens.md)         | 発注側の画面ひな型、URL、画面遷移、実装順序                   |
 | [受注・管理側画面・URL設計案](doc/admin-screens.md)   | 受注・管理側の画面ひな型、URL、画面遷移、実装順序             |

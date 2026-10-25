@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
 import OrderLayout from '../../../layouts/order/OrderLayout.vue';
 import type { OrderBreadcrumb } from '../../../types/order';
 
@@ -24,12 +23,12 @@ const activeTab = ref(tabs[0]);
         :breadcrumbs="breadcrumbs"
     >
         <template #actions>
-            <Link
+            <a
                 :href="`/orders/${orderNumber}/reorder`"
                 class="btn btn-outline-primary btn-sm"
             >
                 再発注
-            </Link>
+            </a>
         </template>
 
         <div class="card">

@@ -30,7 +30,7 @@ docker compose exec nginx nginx -t
 ```
 
 VS Code の「Validate Laravel and Vue scaffold」タスクでもまとめて実行できます。
-Inertia の HTML 応答・JSON 応答を検証する Feature テストを用意しています。
+通常のHTML画面応答とJSON API応答を検証するFeatureテストを用意しています。
 PHPUnit は Docker の DB 環境変数を上書きして SQLite のメモリDBを使用します。
 テスト用接続が分離されていることも Feature テストで検証します。
 
@@ -96,7 +96,7 @@ JavaScript は発注側の `src/resources/js/order.ts` と管理側の
 管理側の `src/resources/scss/admin.scss` をそれぞれ独立した Vite エントリーとして
 コンパイルし、`APP_PORTAL` に応じて対応するエントリーの組み合わせだけを読み込みます。
 Vue ページは `src/resources/js/pages/order/` と `src/resources/js/pages/admin/` に
-分け、共通の Inertia / Vue 起動処理は `src/resources/js/createPortalApp.ts` に配置します。
+分け、共通のVue起動処理は `src/resources/js/createPortalApp.ts` に配置します。
 Bootstrap の共通設定は `src/resources/scss/_bootstrap.scss`、アプリ共通スタイルは
 `src/resources/scss/app.scss` に配置し、両エントリーから読み込みます。
 Sass は Vite がコンパイルするため、追加の Sass 起動コマンドは不要です。
@@ -114,6 +114,30 @@ Tooltip / Popover は自動初期化されないため、Vue のマウント時�
 ホーム画面の表示／非表示ボタンは Bootstrap の Collapse の動作サンプルです。
 Bootstrap 5 内部には旧 Sass 記法が残っているため、Vite の `quietDeps: true` で
 依存パッケージ内の Sass 警告を抑制しています。アプリ独自の SCSS の警告・エラーは抑制しません。
+
+## Figma MCPを使った画面実装
+
+Figma MCPを利用できるVS Code環境では、画面のデザインを参照しながら実装できます。
+MCPサーバーの利用可否や認証状態は環境に依存します。接続や認証を求められた場合は、
+VS CodeのMCP設定に従って準備してください。アクセストークンなどの認証情報は
+リポジトリに保存しないでください。
+
+1. 対象画面またはコンポーネントのFigmaリンクを共有します。特定の要素を参照する場合は、
+   `node-id` を含むリンクを使用してください。リンクに対象ノードが指定されていない場合は、
+   推測せず対象を確認してください。
+2. Figma MCPのデザインコンテキスト取得機能で、対象ノードの情報、画面画像、
+   必要なメタデータやアセットを取得します。
+   参照先へのアクセス権限がない場合は、権限のあるリンクを用意してください。
+3. 取得した情報を参考に、既存のVueページ、共通コンポーネント、SCSS、
+   Bootstrap設定に合わせて実装します。生成されたコードはそのまま採用せず、
+   LTBSの構成・命名・アクセシビリティ・レスポンシブ対応に適合させてください。
+4. 必要なアセットだけをプロジェクトの適切な場所に取り込み、利用条件を確認します。
+   デザイン上の表示だけから、未確定の業務仕様やAPI要件を確定したものとして扱わないでください。
+5. 実装後はブラウザーでデザインと表示を確認し、変更範囲に応じて
+   `npm run lint`、`npm run typecheck`、`npm run build` を実行します。
+
+Figma MCPによるデザインの更新・書き戻しは、依頼で明示された場合に限って行います。
+画面実装の確認に使う場合は、既存のFigmaファイルを変更しないでください。
 
 ## 依存関係の監査
 

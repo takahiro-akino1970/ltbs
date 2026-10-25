@@ -1,10 +1,34 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
+import { onMounted, ref } from 'vue';
+import { api, getApiErrorMessage } from '../../../api';
 import AdminLayout from '../../../layouts/admin/AdminLayout.vue';
-import type { AdminBreadcrumb } from '../../../types/admin';
+import type { AdminBreadcrumb, CustomerOption } from '../../../types/admin';
 
 const breadcrumbs: AdminBreadcrumb[] = [{ label: '発注管理' }];
-const customerOptions = usePage().props.customerOptions;
+const customerOptions = ref<CustomerOption[]>([]);
+const isLoadingCustomerOptions = ref(true);
+const customerOptionsError = ref('');
+
+async function loadCustomerOptions(): Promise<void> {
+    isLoadingCustomerOptions.value = true;
+    customerOptionsError.value = '';
+
+    try {
+        const response = await api.get<{ data: CustomerOption[] }>('/admin/customer-options');
+        customerOptions.value = response.data.data;
+    } catch (error: unknown) {
+        customerOptionsError.value = getApiErrorMessage(
+            error,
+            '得意先候補を読み込めませんでした。',
+        );
+    } finally {
+        isLoadingCustomerOptions.value = false;
+    }
+}
+
+onMounted(() => {
+    void loadCustomerOptions();
+});
 
 const orders = [
     {
@@ -34,6 +58,21 @@ const orders = [
         lead="複数の得意先から届いた発注を横断して確認します。"
         :breadcrumbs="breadcrumbs"
     >
+        <div
+            v-if="customerOptionsError"
+            class="alert alert-danger d-flex align-items-center justify-content-between gap-3"
+            role="alert"
+        >
+            <span>{{ customerOptionsError }}</span>
+            <button
+                type="button"
+                class="btn btn-outline-danger btn-sm text-nowrap"
+                @click="loadCustomerOptions"
+            >
+                再試行
+            </button>
+        </div>
+
         <div class="card mb-3">
             <div class="card-body">
                 <div class="row g-2">
@@ -71,6 +110,7 @@ const orders = [
                         <select
                             id="admin-order-customer"
                             class="form-select form-select-sm"
+                            :disabled="isLoadingCustomerOptions || customerOptionsError !== ''"
                         >
                             <option>すべて</option>
                             <option
@@ -132,9 +172,9 @@ const orders = [
                             :key="order.number"
                         >
                             <td>
-                                <Link :href="`/orders/${order.number}`">
+                                <a :href="`/orders/${order.number}`">
                                     {{ order.number }}
-                                </Link>
+                                </a>
                             </td>
                             <td class="text-nowrap">
                                 {{ order.customer }}

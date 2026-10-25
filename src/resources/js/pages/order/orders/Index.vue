@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
 import OrderLayout from '../../../layouts/order/OrderLayout.vue';
 import type { OrderBreadcrumb } from '../../../types/order';
 
@@ -15,12 +14,12 @@ const columns = ['発注番号', '引取日', '引取地', '納車地', '車両'
         :breadcrumbs="breadcrumbs"
     >
         <template #actions>
-            <Link
+            <a
                 href="/orders/create"
                 class="btn btn-primary btn-sm"
             >
                 新規発注
-            </Link>
+            </a>
         </template>
 
         <div class="card mb-3">
