@@ -109,6 +109,11 @@ GitHub Actions の [release-images.yml](../.github/workflows/release-images.yml)
 本番 Compose は `IMAGE_TAG` で指定したリリースタグのイメージを取得します。
 タグを変更して更新するときは、`IMAGE_TAG` を新しいタグに設定して `pull` してください。
 
+アプリイメージのビルド中は、Composer の `package:discover` が Laravel を初期化するため、
+`composer install` の実行時だけ `APP_PORTAL=order` を指定します。
+この値はイメージの環境変数として保存せず、設定・ルートのキャッシュも生成しません。
+起動時には Compose が各 app に渡す `APP_PORTAL` に従って発注側・管理側を切り替えます。
+
 APP_KEY を生成し、表示された値を各設定ファイルの `APP_KEY` に設定します。
 Laravelの暗号化も分離する場合は、発注側と管理側で同じキーを使い回さないでください。
 一方の環境でLaravelにより暗号化された値は、他方の環境では復号できません。

@@ -83,7 +83,7 @@ RUN mkdir -p /app/storage/framework/cache/data /app/storage/framework/cache/lock
     && chown app:app /app /shared/business-files
 
 USER app
-RUN composer install \
+RUN APP_PORTAL=order composer install \
         --no-dev \
         --no-interaction \
         --prefer-dist \
