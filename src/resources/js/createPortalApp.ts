@@ -24,6 +24,11 @@ function readPageProps(): Record<string, unknown> {
     return props;
 }
 
+/**
+ * Create and mount the portal app
+ *
+ * @param pages The page modules to load
+ */
 export async function createPortalApp(pages: PageModules): Promise<void> {
     const root = document.getElementById('app');
 

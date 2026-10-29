@@ -97,6 +97,9 @@ JavaScript は発注側の `src/resources/js/order.ts` と管理側の
 コンパイルし、`APP_PORTAL` に応じて対応するエントリーの組み合わせだけを読み込みます。
 Vue ページは `src/resources/js/pages/order/` と `src/resources/js/pages/admin/` に
 分け、共通のVue起動処理は `src/resources/js/createPortalApp.ts` に配置します。
+各エントリーの `import.meta.glob` は `{ import: 'default' }` を指定し、
+モジュール全体ではなく Vue コンポーネントを共通の起動処理に渡します。
+HTMLシェルの `page-props` は、初期データが空の場合も JSON オブジェクト（`{}`）で出力します。
 Bootstrap の共通設定は `src/resources/scss/_bootstrap.scss`、アプリ共通スタイルは
 `src/resources/scss/app.scss` に配置し、両エントリーから読み込みます。
 Sass は Vite がコンパイルするため、追加の Sass 起動コマンドは不要です。

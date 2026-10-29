@@ -2,5 +2,5 @@ import { type DefineComponent } from 'vue';
 import { createPortalApp } from './createPortalApp';
 
 createPortalApp(
-    import.meta.glob<DefineComponent>('./pages/order/**/*.vue'),
+    import.meta.glob<DefineComponent>('./pages/order/**/*.vue', { import: 'default' }),
 );

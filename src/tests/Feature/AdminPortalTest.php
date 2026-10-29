@@ -40,7 +40,7 @@ class AdminPortalTest extends TestCase
             ->assertViewIs('app')
             ->assertViewHas('page', $component)
             ->assertSee('data-portal="admin"', false)
-            ->assertSee('id="page-props"', false);
+            ->assertSee('id="page-props" type="application/json">{', false);
     }
 
     public function test_admin_order_detail_receives_the_order_number(): void

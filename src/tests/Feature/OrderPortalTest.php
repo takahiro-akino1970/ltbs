@@ -38,7 +38,7 @@ class OrderPortalTest extends TestCase
             ->assertViewIs('app')
             ->assertViewHas('page', $component)
             ->assertSee('data-portal="order"', false)
-            ->assertSee('id="page-props"', false);
+            ->assertSee('id="page-props" type="application/json">{', false);
     }
 
     public function test_order_detail_pages_receive_the_order_number(): void
