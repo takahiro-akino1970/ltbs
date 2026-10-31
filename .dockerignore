@@ -1,5 +1,6 @@
 .git
 .vscode
+deploy
 **/node_modules
 **/vendor
 **/.env

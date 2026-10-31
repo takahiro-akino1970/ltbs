@@ -6,6 +6,7 @@
         "node": ">=22.12.0"
     },
     "scripts": {
+        "dep": "cd .. && docker compose -f docker/compose.deployer.yaml run --rm deployer",
         "dev": "vite",
         "build": "vite build",
         "lint": "eslint resources/js vite.config.ts",

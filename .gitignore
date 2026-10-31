@@ -3,6 +3,9 @@
 !.env.example
 docker/production/*.env
 docker/local/*.env
+deploy/hosts.yml
+deploy/vendor/
+deploy/.dep/
 .DS_Store
 # Logs
 logs

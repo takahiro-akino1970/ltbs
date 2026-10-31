@@ -1,0 +1,13 @@
+{
+    "name": "ltbs/deployer",
+    "description": "Deployment tooling for LTBS.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "deployer/deployer": "^7.5"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

@@ -57,6 +57,7 @@ Host 名による振り分けは [production.conf.template](../docker/nginx/prod
 ## 前提とセキュリティ
 
 - 実サーバーに Docker Engine、Docker Compose v2、Nginx がインストール済みであること。
+  Ubuntu 24.04 LTS への Docker 導入は[サーバー準備手順](./deployer.md#本番サーバーへの-docker-導入ubuntu-2404-lts)を参照してください。
 - ドメインと TLS 証明書はホスト側 Nginx に設定すること。
 - MariaDB は本番サーバー内で稼働させ、インターネットへ公開しないこと。
 - DB ポートや PHP-FPM ポートは Docker のホストポートとして公開しません。
@@ -106,6 +107,8 @@ GitHub Actions の [release-images.yml](../.github/workflows/release-images.yml)
 それぞれ `ghcr.io/sugitanisystem/ltbs/app:v1.2.3`、
 `ghcr.io/sugitanisystem/ltbs/web:v1.2.3` として GHCR に公開します。
 このワークフローはイメージのビルド・公開までを行い、本番サーバーへのデプロイは行いません。
+両イメージの公開成功後に GitHub Release を作成します。`-` を含むタグは Prerelease とし、
+タグ省略時の最新正式 Release の選択対象から除外します。
 本番 Compose は `IMAGE_TAG` で指定したリリースタグのイメージを取得します。
 タグを変更して更新するときは、`IMAGE_TAG` を新しいタグに設定して `pull` してください。
 
@@ -195,7 +198,10 @@ docker compose -f docker/compose.production.yaml logs -f web app-order app-admin
 
 実際の本番反映では PHP Deployer の利用を検討します。Deployer から SSH で本番サーバーへ接続し、
 サーバー上で GHCR の Compose イメージを pull して起動・更新する想定です。
-Deployer の設定、SSH 接続、GHCR 認証、デプロイ実行自体はまだ実装していません。
+[Docker での Deployer 実行環境と SSH 接続設定例](./deployer.md)を用意しています。
+Release の解決・確認タスクとサーバーの `~/.ltbs-github-token` の配置手順は
+[Deployer の手順](./deployer.md#release-の解決確認)を参照してください。
+GHCR 認証、デプロイ・ロールバック処理はまだ実装していません。
 
 デプロイ時に「直近のイメージ」を使う運用を想定しています。ただし `latest` だけを参照すると、
 障害時に直前に動いていたイメージを特定・再取得しづらくなるため、Actions が公開したリリースタグ

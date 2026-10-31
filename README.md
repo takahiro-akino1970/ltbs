@@ -15,6 +15,7 @@ GitHub Copilot向けの技術構成・開発方針は
 | [構成概要](doc/architecture.md)                      | ディレクトリ構成、Laravel / Vue / JSON API、Nginx / PHP-FPM   |
 | [Docker環境](doc/docker.md)                          | 初回セットアップ、起動・停止、ポート、ファイル共有            |
 | [本番配置](doc/production.md)                         | ホスト Nginx、Docker 上のアプリ、本番サーバー内の MariaDB    |
+| [Deployer 実行環境](doc/deployer.md)                  | Docker 内の PHP での実行、SSH 接続設定例と確認手順          |
 | [データベース](doc/database.md)                      | MariaDB接続、永続化、認証情報、業務テーブル設計案             |
 | [開発ガイド](doc/development.md)                     | 開発・検証、ローカル環境、Sass / Bootstrap、Figma MCP連携    |
 | [要件定義書（たたき台）](doc/要件定義書_たたき台.md) | 業務要件・機能の初期案                                        |
